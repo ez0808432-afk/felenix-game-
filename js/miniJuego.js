@@ -838,28 +838,56 @@ class JuegoFenix {
   }
 
   _drawHUD(ctx, cv) {
-    const fs = Math.round(cv.width*0.022);
-    ctx.fillStyle='rgba(0,0,0,.52)'; ctx.fillRect(0,0,cv.width,32);
-    ctx.fillStyle='#ffcc00'; ctx.font=`bold ${fs}px "Press Start 2P",monospace`;
-    ctx.textAlign='left'; ctx.fillText(`${this._score}`,8,21);
-    ctx.fillStyle='#80d8ff'; ctx.fillText(`💎${this._diamonds}`,110,21);
+    const W = cv.width;
+    const H = cv.height;
 
-    const prog = Math.min(1, this._worldX/this._nivelLen);
-    const bx = cv.width/2-62;
-    ctx.fillStyle='rgba(255,255,255,.1)'; ctx.fillRect(bx,10,124,7);
-    const pg = ctx.createLinearGradient(bx,10,bx+124,10);
-    pg.addColorStop(0,'#ff4400'); pg.addColorStop(1,'#ffcc00');
-    ctx.fillStyle=pg; ctx.fillRect(bx,10,Math.round(124*prog),7);
-    ctx.strokeStyle='rgba(255,150,0,.35)'; ctx.lineWidth=1; ctx.strokeRect(bx,10,124,7);
+    /* Escala relativa al ancho del canvas — funciona en cualquier tamaño */
+    const fs   = Math.max(9,  Math.round(W * 0.030));   // texto principal
+    const fsHe = Math.max(11, Math.round(W * 0.048));   // corazones (emoji)
 
-    ctx.textAlign='right';
-    const coraz = Array.from({length:3},(_,i)=> i<this._vidas?'❤️':'🖤').join('');
-    ctx.font=`${Math.round(cv.width*.038)}px serif`; ctx.fillText(coraz,cv.width-6,22);
+    /* Franja semitransparente de fondo */
+    ctx.fillStyle = 'rgba(0,0,0,.58)';
+    ctx.fillRect(0, 0, W, 34);
 
+    /* ── PUNTAJE (izquierda) ── */
+    ctx.fillStyle = '#ffcc00';
+    ctx.font = `bold ${fs}px "Press Start 2P",monospace`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`${this._score}`, 6, 22);
+
+    /* ── DIAMANTES (junto al score, separado por un pequeño margen) ── */
+    ctx.fillStyle = '#80d8ff';
+    const scoreW = ctx.measureText(`${this._score}`).width;
+    ctx.fillText(`💎${this._diamonds}`, 10 + scoreW + Math.round(W * 0.04), 22);
+
+    /* ── BARRA DE PROGRESO (centro) ── */
+    const barW  = Math.round(W * 0.28);
+    const barH  = 7;
+    const bx    = Math.round(W / 2 - barW / 2);
+    const by    = 13;
+    const prog  = Math.min(1, this._worldX / this._nivelLen);
+    ctx.fillStyle = 'rgba(255,255,255,.12)';
+    ctx.fillRect(bx, by, barW, barH);
+    const pg = ctx.createLinearGradient(bx, by, bx + barW, by);
+    pg.addColorStop(0, '#ff4400'); pg.addColorStop(1, '#ffcc00');
+    ctx.fillStyle = pg;
+    ctx.fillRect(bx, by, Math.round(barW * prog), barH);
+    ctx.strokeStyle = 'rgba(255,150,0,.35)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx, by, barW, barH);
+
+    /* ── CORAZONES (derecha) ── */
+    ctx.font = `${fsHe}px serif`;
+    ctx.textAlign = 'right';
+    const coraz = Array.from({length:3},(_,i) => i < this._vidas ? '❤️' : '🖤').join('');
+    ctx.fillText(coraz, W - 5, 24);
+
+    /* ── PLANEO ── */
     if (this._planeando) {
-      ctx.fillStyle='rgba(255,220,0,.9)';
-      ctx.font=`${Math.round(cv.width*.02)}px Arial`;
-      ctx.textAlign='center'; ctx.fillText('🪶 PLANEANDO', cv.width/2, 44);
+      ctx.fillStyle = 'rgba(255,220,0,.9)';
+      ctx.font = `${Math.round(W * 0.022)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.fillText('🪶 PLANEANDO', W / 2, 48);
     }
   }
 }

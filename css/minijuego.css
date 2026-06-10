@@ -184,6 +184,9 @@
     pointer-events: none;
   }
 
+  /* Overlay por encima de controles en landscape */
+  .runner__overlay { z-index: 30; }
+
   .ctrl__row {
     pointer-events: all;
     justify-content: space-between;
@@ -251,6 +254,8 @@
     padding: 0 18px 14px;
     pointer-events: none;
   }
+  /* Overlay por encima de controles */
+  .runner__overlay { z-index: 30; }
   .ctrl__row {
     pointer-events: all;
     justify-content: space-between;

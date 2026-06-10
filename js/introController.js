@@ -1,18 +1,25 @@
 'use strict';
 /* ================================================================
    introController.js — Singleton
-   v5.3:
-   - Primer gesto desbloquea AudioContext vía SoundManager.desbloquearAudio()
-   - Se registran pointerdown/touchstart/keydown para el desbloqueo
-   - reproducirIntroAsync() es llamado al entrar + en el primer gesto
-   - Compatible con políticas de autoplay de Chrome/Safari mobile
+   v5.4:
+   AUDIO INTRO en web (Vercel):
+   - El AudioContext está suspendido hasta el primer gesto.
+   - Al entrar a la intro se llama reproducirIntroAsync() de
+     inmediato: si el ctx está suspendido, IntroAudio marca
+     _pendPlay=true y espera a unlock().
+   - Se registran touchstart + click + keydown UNA sola vez
+     en document. El primero que llegue llama desbloquearAudio()
+     que hace ctx.resume() y luego reproduce automáticamente.
+   - En desktop (sin bloqueo de autoplay) suena de inmediato.
+   - En mobile (iOS/Android) suena al primer toque.
 ================================================================ */
 class IntroController {
   constructor() {
     this._skip          = false;
     this._partInterval  = null;
+    this._flamaInterval = null;
     this._audioIniciado = false;
-    this._gestureListeners = [];
+    this._unlockBound   = null; // referencia al listener de desbloqueo
   }
 
   static getInstance() {
@@ -24,64 +31,49 @@ class IntroController {
     UIManager.getInstance().mostrarPantalla('screenIntro');
     this._skip          = false;
     this._audioIniciado = false;
-    this._limpiarGestureListeners();
 
+    /* Quitar listener de desbloqueo previo si quedó colgado */
+    this._quitarUnlockListener();
+
+    /* ── Video (muted — siempre permitido) ── */
     const video = document.getElementById('introVideo');
     if (video) {
-      video.loop  = false;
-      video.muted = true;
+      video.loop        = false;
+      video.muted       = true;
       video.currentTime = 0;
-
-      const playPromise = video.play();
-      if (playPromise) {
-        playPromise.catch(() => {
-          const startOnTouch = () => {
-            video.play().catch(() => {});
-          };
-          document.addEventListener('pointerdown', startOnTouch, { once: true });
+      const vp = video.play();
+      if (vp) {
+        vp.catch(() => {
+          document.addEventListener('pointerdown',
+            () => video.play().catch(() => {}), { once: true });
         });
       }
-
-      video.addEventListener('ended', () => { /* congelar en último frame */ }, { once: true });
     }
 
     this._generarParticulas();
 
-    /* ── AUDIO DE INTRO ──
-       Intentamos reproducir de inmediato (puede funcionar en desktop).
-       En mobile el AudioContext suele necesitar un gesto; lo manejamos
-       registrando listeners que desbloquean el contexto y reinician. */
-    const intentarAudio = () => {
-      if (this._audioIniciado || this._skip) return;
-      // Primero desbloquear el AudioContext si estaba suspendido
-      SoundManager.getInstance().desbloquearAudio();
-      SoundManager.getInstance().reproducirIntroAsync().then(ok => {
-        if (ok) this._audioIniciado = true;
+    /* ── AUDIO INTRO ──
+       1. Llamar play() de inmediato — en desktop suena ya.
+          En mobile el AudioContext queda en estado "pendiente".
+       2. Registrar listener de desbloqueo para el primer gesto. */
+    SoundManager.getInstance().reproducirIntroAsync().then(ok => {
+      if (ok) this._audioIniciado = true;
+    });
+
+    /* Listener de desbloqueo: primer gesto -> ctx.resume() -> suena */
+    this._unlockBound = () => {
+      if (this._skip) return;
+      SoundManager.getInstance().desbloquearAudio().then(() => {
+        this._audioIniciado = true;
       });
+      this._quitarUnlockListener();
     };
+    /* passive:true permite que touchstart no bloquee el scroll */
+    document.addEventListener('touchstart', this._unlockBound, { passive: true });
+    document.addEventListener('click',      this._unlockBound);
+    document.addEventListener('keydown',    this._unlockBound);
 
-    /* Intento inmediato (funciona en desktop y browsers permisivos) */
-    intentarAudio();
-
-    /* Respaldo: al primer gesto el AudioContext se desbloquea y se reproduce */
-    const onGesto = () => {
-      if (!this._audioIniciado && !this._skip) {
-        intentarAudio();
-      }
-      this._limpiarGestureListeners();
-    };
-
-    const opts = { once: true, passive: true };
-    document.addEventListener('pointerdown',  onGesto, opts);
-    document.addEventListener('touchstart',   onGesto, opts);
-    document.addEventListener('keydown',      onGesto, opts);
-    // Guardar refs para poder limpiarlos si se salta antes del gesto
-    this._gestureListeners = [
-      ['pointerdown', onGesto],
-      ['touchstart',  onGesto],
-      ['keydown',     onGesto],
-    ];
-
+    /* Botones de skip */
     document.getElementById('btnSkipIntro')
       ?.addEventListener('click', () => this._saltar(), { once: true });
     document.getElementById('screenIntro')
@@ -90,18 +82,19 @@ class IntroController {
     this._secuencia();
   }
 
-  _limpiarGestureListeners() {
-    this._gestureListeners.forEach(([ev, fn]) => {
-      document.removeEventListener(ev, fn);
-    });
-    this._gestureListeners = [];
+  _quitarUnlockListener() {
+    if (!this._unlockBound) return;
+    document.removeEventListener('touchstart', this._unlockBound);
+    document.removeEventListener('click',      this._unlockBound);
+    document.removeEventListener('keydown',    this._unlockBound);
+    this._unlockBound = null;
   }
 
   _saltar() {
     if (this._skip) return;
     this._skip = true;
     this._limpiar();
-    this._limpiarGestureListeners();
+    this._quitarUnlockListener();
     SoundManager.getInstance().detenerIntro();
     const video = document.getElementById('introVideo');
     if (video) video.pause();
@@ -191,7 +184,9 @@ class IntroController {
   _esperar(ms) {
     return new Promise(res => {
       const t = setTimeout(res, ms);
-      const c = setInterval(() => { if (this._skip) { clearTimeout(t); clearInterval(c); res(); } }, 50);
+      const c = setInterval(() => {
+        if (this._skip) { clearTimeout(t); clearInterval(c); res(); }
+      }, 50);
       setTimeout(() => clearInterval(c), ms + 100);
     });
   }
