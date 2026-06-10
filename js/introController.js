@@ -1,16 +1,18 @@
 'use strict';
 /* ================================================================
    introController.js — Singleton
-   Corrección: el audio se reproduce exactamente cuando el usuario
-   hace el PRIMER gesto (clic en skip o en la pantalla).
-   El video NO tiene autoplay de audio — el audio se inicia
-   manualmente en el primer evento pointer/touch/click.
+   v5.3:
+   - Primer gesto desbloquea AudioContext vía SoundManager.desbloquearAudio()
+   - Se registran pointerdown/touchstart/keydown para el desbloqueo
+   - reproducirIntroAsync() es llamado al entrar + en el primer gesto
+   - Compatible con políticas de autoplay de Chrome/Safari mobile
 ================================================================ */
 class IntroController {
   constructor() {
-    this._skip       = false;
-    this._partInterval = null;
+    this._skip          = false;
+    this._partInterval  = null;
     this._audioIniciado = false;
+    this._gestureListeners = [];
   }
 
   static getInstance() {
@@ -20,8 +22,9 @@ class IntroController {
 
   iniciar() {
     UIManager.getInstance().mostrarPantalla('screenIntro');
-    this._skip = false;
+    this._skip          = false;
     this._audioIniciado = false;
+    this._limpiarGestureListeners();
 
     const video = document.getElementById('introVideo');
     if (video) {
@@ -29,41 +32,55 @@ class IntroController {
       video.muted = true;
       video.currentTime = 0;
 
-      /* Intentar reproducir el video inmediatamente (muted = permitido) */
       const playPromise = video.play();
       if (playPromise) {
         playPromise.catch(() => {
-          /* En algunos navegadores móviles necesitamos esperar interacción */
           const startOnTouch = () => {
             video.play().catch(() => {});
-            document.removeEventListener('pointerdown', startOnTouch);
           };
           document.addEventListener('pointerdown', startOnTouch, { once: true });
         });
       }
 
-      /* Al terminar el video: queda congelado en último frame */
-      video.addEventListener('ended', () => { /* sin acción */ }, { once: true });
+      video.addEventListener('ended', () => { /* congelar en último frame */ }, { once: true });
     }
 
     this._generarParticulas();
 
-    /* ── AUDIO DE INTRO: suena APENAS se entra a la página, junto al video.
-       Se intenta reproducir de inmediato. Si el navegador bloquea el
-       autoplay, se reintenta en el primer gesto del usuario. ── */
+    /* ── AUDIO DE INTRO ──
+       Intentamos reproducir de inmediato (puede funcionar en desktop).
+       En mobile el AudioContext suele necesitar un gesto; lo manejamos
+       registrando listeners que desbloquean el contexto y reinician. */
     const intentarAudio = () => {
       if (this._audioIniciado || this._skip) return;
+      // Primero desbloquear el AudioContext si estaba suspendido
+      SoundManager.getInstance().desbloquearAudio();
       SoundManager.getInstance().reproducirIntroAsync().then(ok => {
         if (ok) this._audioIniciado = true;
       });
     };
 
-    /* Intento INMEDIATO (sin retraso) — sincronizado con el video */
+    /* Intento inmediato (funciona en desktop y browsers permisivos) */
     intentarAudio();
 
-    /* Respaldo: si el autoplay fue bloqueado, sonará al primer gesto */
-    document.addEventListener('pointerdown', intentarAudio, { once: true });
-    document.addEventListener('keydown',     intentarAudio, { once: true });
+    /* Respaldo: al primer gesto el AudioContext se desbloquea y se reproduce */
+    const onGesto = () => {
+      if (!this._audioIniciado && !this._skip) {
+        intentarAudio();
+      }
+      this._limpiarGestureListeners();
+    };
+
+    const opts = { once: true, passive: true };
+    document.addEventListener('pointerdown',  onGesto, opts);
+    document.addEventListener('touchstart',   onGesto, opts);
+    document.addEventListener('keydown',      onGesto, opts);
+    // Guardar refs para poder limpiarlos si se salta antes del gesto
+    this._gestureListeners = [
+      ['pointerdown', onGesto],
+      ['touchstart',  onGesto],
+      ['keydown',     onGesto],
+    ];
 
     document.getElementById('btnSkipIntro')
       ?.addEventListener('click', () => this._saltar(), { once: true });
@@ -73,10 +90,18 @@ class IntroController {
     this._secuencia();
   }
 
+  _limpiarGestureListeners() {
+    this._gestureListeners.forEach(([ev, fn]) => {
+      document.removeEventListener(ev, fn);
+    });
+    this._gestureListeners = [];
+  }
+
   _saltar() {
     if (this._skip) return;
     this._skip = true;
     this._limpiar();
+    this._limpiarGestureListeners();
     SoundManager.getInstance().detenerIntro();
     const video = document.getElementById('introVideo');
     if (video) video.pause();
@@ -148,7 +173,6 @@ class IntroController {
     }, msPerChar);
   }
 
-  /* Solo la FLAMA — sin huevo, sin grieta */
   _animarFlama() {
     const ex = document.getElementById('introExplosion');
     if (!ex) return;
@@ -156,7 +180,6 @@ class IntroController {
     ex.style.opacity    = '1';
     ex.style.transform  = 'scale(1.6)';
     ex.style.fontSize   = '90px';
-    /* Pulso suave continuo */
     let grande = true;
     this._flamaInterval = setInterval(() => {
       if (this._skip) { clearInterval(this._flamaInterval); return; }

@@ -1,0 +1,274 @@
+/* ================================================================
+   MINIJUEGO.CSS v5.3
+   Portrait:  ◀▶ esquina inferior-izquierda | ▲▼ esquina inferior-derecha
+   Landscape: pantalla completa, botones en esquinas flotantes
+   Header:    stats visibles y legibles en móvil
+================================================================ */
+
+#screenMiniJuego {
+  flex-direction: column;
+  background: #000;
+  overflow: hidden;
+  height: 100dvh;
+  padding: 0; gap: 0;
+  position: relative;
+}
+
+/* ── Header ── */
+.runner__header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 10px;
+  background: rgba(0,0,0,.75);
+  border-bottom: 1px solid rgba(255,100,0,.25);
+  flex-shrink: 0; gap: 6px; min-height: 38px; z-index: 10;
+  box-sizing: border-box; width: 100%;
+}
+.runner__back {
+  background: rgba(160,50,0,.85);
+  border: 1px solid rgba(255,100,0,.45);
+  border-radius: 8px; color: #ffcc88;
+  font-family: var(--font-b);
+  font-size: clamp(.55rem, 2.5vw, .7rem);
+  padding: 6px 10px; cursor: pointer; white-space: nowrap;
+  min-height: 34px; min-width: 58px; flex-shrink: 0;
+}
+.runner__titulo {
+  font-family: var(--font-d); color: #ffcc00; margin: 0;
+  font-size: clamp(.55rem, 2.8vw, .85rem);
+  text-shadow: 0 0 10px rgba(255,180,0,.55);
+  white-space: nowrap; flex: 1; text-align: center;
+  overflow: hidden; text-overflow: ellipsis;
+}
+/* Stats: REC visible y legible en móvil */
+.runner__hi {
+  font-family: var(--font-b);
+  font-size: clamp(.6rem, 2.8vw, .75rem);
+  color: #ff8800;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: rgba(0,0,0,.4);
+  border: 1px solid rgba(255,120,0,.3);
+  border-radius: 6px;
+  padding: 3px 7px;
+}
+
+/* ── Canvas wrap ── */
+.runner__canvas-wrap {
+  position: relative; flex: 1 1 auto;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; min-height: 0;
+  background: #000;
+}
+#gameCanvas {
+  display: block;
+  touch-action: none;
+  image-rendering: auto;
+}
+
+/* ── Overlay ── */
+.runner__overlay {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.76); backdrop-filter: blur(5px);
+}
+.runner__box {
+  background: rgba(10,2,20,.97);
+  border: 1px solid rgba(255,100,0,.35);
+  border-radius: 14px; padding: 22px 18px; text-align: center;
+  max-width: min(340px, 92vw); width: 100%;
+  box-shadow: 0 0 40px rgba(255,80,0,.25);
+}
+.go-title { font-family: var(--font-d); color: #ffcc00; font-size: clamp(.72rem,3.2vw,1.05rem); text-shadow: 0 0 14px rgba(255,180,0,.7); margin-bottom: 8px; }
+.go-sub   { font-size: .7rem; color: #c88050; font-family: var(--font-b); line-height: 1.6; margin-bottom: 12px; }
+.go-score { font-size: .72rem; color: #ffaa44; font-family: var(--font-b); margin: 5px 0; }
+.go-hi    { font-size: .64rem; color: #777; font-family: var(--font-b); margin-bottom: 12px; }
+.go-btn   {
+  display: block; width: 100%; margin: 6px 0; padding: 11px;
+  background: linear-gradient(135deg,#cc3300,#ff6600);
+  border: none; border-radius: 10px; color: #fff;
+  font-family: var(--font-b); font-size: .65rem; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255,80,0,.4); transition: transform .1s, opacity .1s;
+}
+.go-btn:active { transform: translateY(2px); opacity: .85; }
+
+/* ════════════════════════════════════════════════════
+   CONTROLES — PORTRAIT MÓVIL (por defecto)
+   Layout:  [◀] [▶] esquina inf-izq  |  [▲][▼] esquina inf-der
+   Los botones están pegados al fondo, en las esquinas.
+════════════════════════════════════════════════════ */
+.runner__controles {
+  flex-shrink: 0;
+  background: rgba(0,0,0,.65);
+  padding: 8px 12px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  touch-action: none; user-select: none; -webkit-user-select: none;
+  width: 100%; box-sizing: border-box;
+}
+
+/* Fila principal: dos grupos en extremos opuestos */
+.ctrl__row {
+  display: flex; align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Grupo izquierdo: ◀ y ▶ en fila */
+.ctrl__group--left  {
+  display: flex; flex-direction: row; gap: 10px; align-items: center;
+}
+/* Grupo derecho: ▲ encima de ▼ */
+.ctrl__group--right {
+  display: flex; flex-direction: column; gap: 8px; align-items: center;
+}
+/* Centro oculto en portrait */
+.ctrl__center { display: none; }
+
+.ctrl__btn {
+  background: rgba(110,35,0,.88);
+  border: 1.5px solid rgba(255,110,0,.5);
+  border-radius: 12px; color: #ffcc88;
+  font-size: clamp(1rem, 5vw, 1.4rem);
+  width:  clamp(58px, 16vw, 76px);
+  height: clamp(54px, 14vw, 68px);
+  cursor: pointer; touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .08s, transform .08s;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; line-height: 1.1;
+}
+.ctrl__btn:active { background: rgba(200,65,0,.92); transform: scale(.90); }
+
+.ctrl__jump {
+  background: rgba(0,70,140,.9);
+  border-color: rgba(80,160,255,.5);
+  min-width: clamp(66px, 18vw, 90px);
+}
+.ctrl__down {
+  background: rgba(75,0,95,.9);
+  border-color: rgba(175,75,255,.5);
+  min-width: clamp(66px, 18vw, 90px);
+}
+
+.ctrl__hint {
+  text-align: center; font-size: .46rem;
+  color: rgba(255,150,80,.4); margin: 4px 0 0;
+  font-family: var(--font-b);
+}
+
+/* ════════════════════════════════════════════════════
+   LANDSCAPE MÓVIL (alto ≤ 520px)
+   Canvas ocupa toda la pantalla.
+   Botones flotantes en esquinas.
+════════════════════════════════════════════════════ */
+@media (orientation: landscape) and (max-height: 520px) {
+
+  #screenMiniJuego { flex-direction: column; }
+
+  .runner__header {
+    position: absolute; top: 0; left: 0; right: 0;
+    z-index: 30; min-height: 32px; padding: 3px 8px;
+    background: rgba(0,0,0,.6);
+  }
+
+  .runner__canvas-wrap {
+    position: absolute; inset: 0; z-index: 1;
+    flex: unset;
+  }
+
+  /* Controles flotantes en esquinas inferiores */
+  .runner__controles {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 25; background: transparent;
+    padding: 0 10px 8px;
+    pointer-events: none;
+  }
+
+  .ctrl__row {
+    pointer-events: all;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .ctrl__group--left {
+    gap: 6px;
+    background: rgba(0,0,0,.35);
+    border-radius: 12px;
+    padding: 4px 6px;
+  }
+  .ctrl__group--right {
+    gap: 6px;
+    background: rgba(0,0,0,.35);
+    border-radius: 12px;
+    padding: 4px 6px;
+  }
+
+  .ctrl__btn {
+    width:  clamp(42px, 9vw, 54px);
+    height: clamp(40px, 8vw, 50px);
+    font-size: clamp(.85rem, 3vw, 1.1rem);
+    opacity: .88;
+  }
+  .ctrl__jump, .ctrl__down { min-width: clamp(52px, 11vw, 66px); }
+  .ctrl__hint { display: none; }
+}
+
+/* ════════════════════════════════════
+   TABLET portrait (≥ 560px ancho)
+════════════════════════════════════ */
+@media (min-width: 560px) and (orientation: portrait) {
+  .ctrl__btn { width: 64px; height: 58px; font-size: 1.25rem; border-radius: 14px; }
+  .ctrl__jump, .ctrl__down { min-width: 90px; }
+}
+
+/* ════════════════════════════════════
+   DESKTOP (≥ 700px)
+   Canvas pantalla completa, controles flotantes en esquinas.
+════════════════════════════════════ */
+@media (min-width: 700px) {
+  #screenMiniJuego { background: #000; }
+
+  .runner__header {
+    position: absolute; top: 0; left: 0; right: 0;
+    z-index: 30; min-height: 44px; padding: 6px 18px;
+    background: rgba(0,0,0,.82);
+  }
+  .runner__titulo { font-size: clamp(.7rem, 1.6vw, 1rem); }
+  .runner__hi     { font-size: .78rem; }
+  .runner__back   { font-size: .68rem; padding: 8px 16px; }
+
+  .runner__canvas-wrap {
+    position: absolute;
+    top: 44px; left: 0; right: 0; bottom: 0;
+    z-index: 1; flex: unset;
+    background: #000;
+  }
+
+  .runner__controles {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 25; background: transparent;
+    padding: 0 18px 14px;
+    pointer-events: none;
+  }
+  .ctrl__row {
+    pointer-events: all;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .ctrl__group--left {
+    gap: 8px;
+    background: rgba(0,0,0,.42);
+    border-radius: 14px;
+    padding: 6px 8px;
+  }
+  .ctrl__group--right {
+    gap: 8px;
+    background: rgba(0,0,0,.42);
+    border-radius: 14px;
+    padding: 6px 8px;
+  }
+  .ctrl__btn  { width: 62px; height: 56px; font-size: 1.25rem; border-radius: 14px; opacity: .92; }
+  .ctrl__jump, .ctrl__down { min-width: 104px; height: 54px; }
+  .ctrl__hint { display: none; }
+}
