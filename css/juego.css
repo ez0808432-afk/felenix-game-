@@ -1,0 +1,332 @@
+/* ================================================================
+   JUEGO.CSS — Pantalla principal, completamente responsiva
+   Mobile: columna (mascota arriba, stats abajo)
+   Desktop: fila (mascota izquierda, stats derecha)
+================================================================ */
+
+#screenJuego {
+  background: #0d0005;
+  flex-direction: column;       /* móvil por defecto */
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+#screenJuego::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url('../imagenes/bg_main.jpg') center/cover no-repeat;
+  opacity: .32;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Panel mascota ── */
+.juego__mascota-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px 6px;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.mascota__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mascota__nombre {
+  font-family: var(--font-d);
+  font-size: clamp(.75rem, 2.5vw, 1rem);
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(255,180,0,.7);
+  white-space: nowrap;
+}
+
+.mascota__badge {
+  padding: 3px 9px;
+  border-radius: 20px;
+  background: rgba(255,100,0,.18);
+  border: 1px solid rgba(255,150,0,.4);
+  font-family: var(--font-b);
+  font-size: .64rem;
+  color: var(--fire3);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  white-space: nowrap;
+}
+
+/* ── Display principal ── */
+.mascota__display {
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 1 / 1;
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 2px solid rgba(255,150,0,.35);
+  box-shadow:
+    0 0 0 1px rgba(255,80,0,.12),
+    0 0 28px rgba(255,80,0,.22),
+    inset 0 0 36px rgba(0,0,0,.5);
+}
+
+.escenario__fondo {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(255,120,0,.08) 0%, transparent 60%),
+    linear-gradient(180deg, #0d0820 0%, #1a0a35 30%, #2d1060 55%, #5c1a00 80%, #2a0a00 100%);
+}
+.escenario__fondo::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, rgba(255,255,255,.7) 0%, transparent 100%),
+    radial-gradient(1px   1px   at 38% 8%,  rgba(255,220,120,.6) 0%, transparent 100%),
+    radial-gradient(2px   2px   at 65% 22%, rgba(255,255,255,.5) 0%, transparent 100%),
+    radial-gradient(1px   1px   at 82% 12%, rgba(255,255,255,.7) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 92% 30%, rgba(255,220,120,.5) 0%, transparent 100%);
+  animation: starsAnim 8s ease-in-out infinite alternate;
+}
+.escenario__fondo::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: url('../imagenes/bg_main.jpg') center/cover no-repeat;
+  opacity: .2;
+}
+
+.escenario__suelo {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 22%;
+  background: linear-gradient(180deg, #5c2800 0%, #3a1500 50%, #1a0800 100%);
+  border-top: 2px solid rgba(255,130,0,.5);
+}
+.escenario__suelo::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,150,0,.8) 15%,
+    rgba(255,220,0,1) 50%, rgba(255,150,0,.8) 85%, transparent 100%);
+  animation: lavaGlow 2s ease-in-out infinite alternate;
+  box-shadow: 0 0 10px rgba(255,150,0,.6);
+}
+
+/* ── Sprite wrapper ── */
+.mascota__sprite-wrapper {
+  position: absolute;
+  bottom: 22%; left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mascota__img {
+  width: 105px; height: 105px;
+  object-fit: contain;
+  image-rendering: auto;
+  filter: drop-shadow(0 0 10px rgba(255,100,0,.7));
+  transition: filter .3s;
+}
+
+.mascota__aura {
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 1;
+  background: radial-gradient(ellipse at 50% 65%, rgba(255,100,0,.12) 0%, transparent 65%);
+  animation: auraPulse 2.5s ease-in-out infinite;
+}
+.mascota__expresion {
+  position: absolute; top: -28px;
+  font-size: 1.6rem; pointer-events: none;
+}
+
+/* ── Burbuja de diálogo ── */
+.mascota__burbuja {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(10,3,22,.92);
+  border: 1px solid rgba(255,160,0,.5);
+  border-radius: 12px 12px 12px 4px;
+  padding: 6px 9px;
+  max-width: 62%; z-index: 6;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 15px rgba(0,0,0,.5);
+  display: none;
+}
+.mascota__burbuja.visible { display: block; animation: burbujaIn .3s cubic-bezier(.17,.67,.35,1.5); }
+#burbujaTexto { font-family: var(--font-b); font-size: .7rem; color: var(--text); line-height: 1.5; white-space: pre-line; }
+
+.mascota__dialogo {
+  width: 100%; max-width: 260px;
+  text-align: center;
+  font-family: var(--font-b); font-size: .8rem;
+  color: var(--fire3);
+  padding: 6px 10px;
+  background: rgba(0,0,0,.45);
+  border-radius: 8px;
+  border: 1px solid rgba(255,120,0,.2);
+  min-height: 2.2em;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+/* ── Panel stats ── */
+.juego__stats-panel {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 10px;
+  overflow-y: auto;
+  position: relative; z-index: 1;
+  background: rgba(5,0,15,.55);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255,100,0,.15);
+  min-height: 0;
+}
+
+.stats__necesidades { display: flex; flex-direction: column; gap: 7px; }
+.stat__item { display: flex; flex-direction: column; gap: 2px; }
+
+.stat__label {
+  display: flex; align-items: center; gap: 5px;
+  font-family: var(--font-b); font-size: .74rem; font-weight: 700;
+  letter-spacing: .05em; color: var(--text); text-transform: uppercase;
+}
+.stat__val {
+  margin-left: auto; font-family: var(--font-p); font-size: .42rem; color: var(--fire3);
+}
+.stat__alerta {
+  font-family: var(--font-b); font-size: .67rem; color: #ff6644;
+  animation: blink 1.5s ease-in-out infinite; padding: 2px 5px;
+}
+.barra--low progress::-webkit-progress-value { background: linear-gradient(90deg,#aa0000,#ff3333) !important; }
+.barra--low progress::-moz-progress-bar      { background: linear-gradient(90deg,#aa0000,#ff3333) !important; }
+
+/* Colores por barra */
+#barraSalud::-webkit-progress-value     { background: linear-gradient(90deg,#cc0000,#ff5555); }
+#barraEnergia::-webkit-progress-value   { background: linear-gradient(90deg,#0055cc,#00aaff); }
+#barraFelicidad::-webkit-progress-value { background: linear-gradient(90deg,#cc6600,#ffbb00); }
+#barraHambre::-webkit-progress-value    { background: linear-gradient(90deg,#005522,#00cc66); }
+#barraHigiene::-webkit-progress-value   { background: linear-gradient(90deg,#550099,#aa44ff); }
+#barraSalud::-moz-progress-bar          { background: linear-gradient(90deg,#cc0000,#ff5555); }
+#barraEnergia::-moz-progress-bar        { background: linear-gradient(90deg,#0055cc,#00aaff); }
+#barraFelicidad::-moz-progress-bar      { background: linear-gradient(90deg,#cc6600,#ffbb00); }
+#barraHambre::-moz-progress-bar         { background: linear-gradient(90deg,#005522,#00cc66); }
+#barraHigiene::-moz-progress-bar        { background: linear-gradient(90deg,#550099,#aa44ff); }
+
+/* ── Botones de acción ── */
+.stats__acciones {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  padding-top: 4px;
+}
+
+.accion__btn {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 4px; padding: 10px 6px;
+  border-radius: var(--br);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,120,0,.22);
+  color: var(--text);
+  transition: all var(--t-norm);
+  backdrop-filter: blur(4px);
+  min-height: 56px;
+}
+.accion__btn span:first-child {
+  font-size: clamp(1.2rem, 4vw, 1.5rem);
+  filter: drop-shadow(0 0 4px rgba(255,100,0,.6));
+}
+.accion__btn span:last-child {
+  font-family: var(--font-b); font-size: .58rem; font-weight: 700;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--textdim);
+}
+.accion__btn:hover, .accion__btn:active {
+  border-color: rgba(255,150,0,.6);
+  background: rgba(255,100,0,.12);
+  box-shadow: 0 4px 14px rgba(255,80,0,.25);
+}
+/* Mute ocupa toda la fila */
+.accion__btn--wide {
+  grid-column: span 3;
+  flex-direction: row; gap: 8px; padding: 9px;
+  min-height: 44px;
+}
+.accion__btn.muted { opacity: .4; border-style: dashed; }
+
+/* ── Muerte ── */
+.muerte__overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.92);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50; backdrop-filter: blur(6px);
+}
+.muerte__card {
+  text-align: center; display: flex; flex-direction: column;
+  align-items: center; gap: 14px; padding: 28px 20px;
+  background: rgba(8,2,18,.96);
+  border: 1px solid rgba(255,60,0,.3);
+  border-radius: 18px; max-width: 320px; width: 92%;
+}
+.muerte__card h2 { font-family: var(--font-d); font-size: clamp(.9rem,3vw,1.3rem); color: var(--fire1); text-shadow: 0 0 18px rgba(255,80,0,.6); }
+.muerte__card p  { font-family: var(--font-b); font-size: .85rem; color: var(--textdim); line-height: 1.6; }
+.muerte__img     { width: 110px; height: 110px; object-fit: contain; filter: saturate(.3) brightness(.6); animation: flotar 2s ease-in-out infinite; }
+.muerte__card button {
+  padding: 12px 28px;
+  background: linear-gradient(135deg,#cc3300,#ff6600);
+  border-radius: var(--br); font-family: var(--font-d);
+  font-size: .8rem; color: #fff;
+  box-shadow: 0 4px 18px rgba(255,80,0,.5); margin-top: 4px;
+}
+
+/* ── Keyframes ── */
+@keyframes auraPulse { 0%,100%{opacity:.6;transform:scale(1)}   50%{opacity:1;transform:scale(1.06)} }
+@keyframes starsAnim { from{opacity:.5} to{opacity:1} }
+@keyframes lavaGlow  { from{opacity:.6} to{opacity:1} }
+@keyframes flotar    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+@keyframes burbujaIn { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes blink     { 0%,100%{opacity:.35} 50%{opacity:1} }
+
+/* ════════════════════════════════════
+   RESPONSIVE: tablet/desktop → fila
+════════════════════════════════════ */
+@media (min-width: 600px) {
+  #screenJuego        { flex-direction: row; }
+  .juego__mascota-panel {
+    flex: 0 0 auto; width: 52%;
+    border-right: 1px solid rgba(255,150,0,.18);
+    border-top: none; padding: 14px;
+  }
+  .mascota__display   { max-width: 290px; }
+  .juego__stats-panel { flex: 1 1 auto; border-top: none; padding: 14px; gap: 10px; }
+  .stats__acciones    { grid-template-columns: repeat(2,1fr); }
+  .accion__btn--wide  { grid-column: span 2; }
+  .mascota__img       { width: 120px; height: 120px; }
+  .mascota__dialogo   { max-width: 290px; }
+}
+
+@media (min-width: 900px) {
+  .mascota__display { max-width: 320px; }
+  .mascota__img     { width: 135px; height: 135px; }
+}
+
+/* Landscape móvil ajustado */
+@media (orientation: landscape) and (max-height: 500px) {
+  .juego__mascota-panel { padding: 6px 10px; gap: 5px; }
+  .mascota__display     { max-width: 180px; }
+  .mascota__img         { width: 80px; height: 80px; }
+  .juego__stats-panel   { padding: 6px 10px; gap: 5px; }
+  .stat__label          { font-size: .65rem; }
+  .accion__btn          { min-height: 44px; padding: 6px; }
+  .accion__btn span:first-child { font-size: 1.1rem; }
+  .mascota__dialogo     { font-size: .68rem; min-height: 1.8em; }
+}

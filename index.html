@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <title>Felénix — El Ave Guardiana</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Rajdhani:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/intro.css"/>
+  <link rel="stylesheet" href="css/nombre.css"/>
+  <link rel="stylesheet" href="css/menu.css"/>
+  <link rel="stylesheet" href="css/juego.css"/>
+  <link rel="stylesheet" href="css/minijuego.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <style>
+    html, body { height: 100dvh; overflow: hidden; touch-action: none; }
+    .screen    { height: 100dvh; }
+    :root {
+      --font-d: 'Cinzel Decorative', serif;
+      --font-t: 'Cinzel Decorative', serif;
+      --font-s: 'Rajdhani', sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     INTRO — video una sola vez, queda congelado
+══════════════════════════════════════════ -->
+<section id="screenIntro" class="screen" style="display:none">
+  <video id="introVideo" class="intro__video"
+         src="imagenes/intro_video.mp4"
+         autoplay muted playsinline
+         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.78;z-index:0">
+  </video>
+  <div class="intro__overlay"></div>
+  <div class="intro__particles" id="introParticles"></div>
+
+  <!-- Solo la flama — sin huevo ni grieta -->
+  <div class="intro__huevo-wrap" id="huevoWrap">
+    <div class="intro__explosion" id="introExplosion">🔥</div>
+  </div>
+
+  <!-- Solo textos de narrativa — sin textos de animación del huevo -->
+  <div class="intro__textos">
+    <p  class="intro__pretitulo" id="intro-pretitulo"></p>
+    <h1 class="intro__titulo"    id="intro-titulo"></h1>
+    <p  class="intro__subtitulo" id="intro-subtitulo"></p>
+    <p  class="intro__cta"       id="intro-cta"></p>
+  </div>
+  <button class="intro__skip" id="btnSkipIntro">[ Toca para saltar ]</button>
+</section>
+
+<!-- ══════════════════════════════════════════
+     NOMBRE — fondo negro · idle_f00 aquí (#1)
+══════════════════════════════════════════ -->
+<section id="screenNombre" class="screen" style="display:none">
+  <div class="nombre__bg"></div>
+  <div class="nombre__card">
+    <div class="nombre__mascota-preview">
+      <img src="imagenes/idle_f00.png" alt="Felénix"
+           class="nombre__img" id="nombreImg"
+           onerror="this.style.opacity='0'"/>
+      <div class="nombre__aura"></div>
+    </div>
+    <h2 class="nombre__titulo">🔥 Un nuevo guardián ha llegado</h2>
+    <p  class="nombre__subtitulo">Dale un nombre a tu Felénix</p>
+    <div class="nombre__input-wrap">
+      <input type="text" id="inputNombre" class="nombre__input"
+             maxlength="16" placeholder="Ej: Ignis, Pyrax, Solara…"
+             autocomplete="off" spellcheck="false"/>
+    </div>
+    <p class="nombre__hint">Solo letras · máx. 16 caracteres</p>
+    <button class="nombre__btn" id="btnConfirmarNombre">🔥 DESPERTAR AL FELÉNIX</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     MENÚ — fondo negro · idle_f00 en showcase (#2)
+══════════════════════════════════════════ -->
+<section id="screenMenu" class="screen" style="display:none">
+  <div class="menu__bg-flames"></div>
+  <div class="menu__stars" id="menuStars"></div>
+  <div class="menu__container">
+    <div class="menu__logo">
+      <span class="logo__fire">🔥</span>
+      <h1 class="logo__title">FELÉNIX</h1>
+      <p  class="logo__subtitle">El Ave Guardiana</p>
+    </div>
+    <!-- Showcase: misma idle_f00 que en pantalla de nombre -->
+    <div class="menu__showcase">
+      <div class="showcase__aura"></div>
+      <img class="showcase__img" id="menuImg"
+           src="imagenes/idle_f00.png" alt="Felénix"
+           onerror="this.style.opacity='0'"/>
+      <p class="showcase__name"   id="menuNombreMascota">Felénix</p>
+      <p class="showcase__estado">Esperándote…</p>
+    </div>
+    <nav class="menu__nav">
+      <button class="menu__btn menu__btn--primary" id="btnIniciarJuego">
+        <span>🔥</span> DESPERTAR AL FELÉNIX
+      </button>
+      <button class="menu__btn menu__btn--secondary" id="btnVerCreditos">
+        <span>📜</span> LEYENDAS
+      </button>
+    </nav>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     JUEGO PRINCIPAL — sprites de estado reales (sin idle_f00)
+══════════════════════════════════════════ -->
+<section id="screenJuego" class="screen" style="display:none">
+
+  <div class="juego__mascota-panel">
+    <div class="mascota__header">
+      <h2 class="mascota__nombre" id="juegoNombreMascota">🔥 Felénix</h2>
+      <span class="mascota__badge" id="estadoBadge">✨ Despierto</span>
+    </div>
+
+    <div class="mascota__display" id="mascotaDisplay">
+      <div class="mascota__aura"  id="mascotaAura"></div>
+      <div class="escenario__fondo"></div>
+      <div class="escenario__suelo"></div>
+      <div class="mascota__sprite-wrapper" id="spriteWrapper">
+        <!-- Inicia con normal01 — nunca idle_f00 aquí -->
+        <img class="mascota__img" id="gifMascota"
+             src="imagenes/normal01.png" alt="Felénix"
+             onerror="this.style.opacity='0.3'"/>
+        <div class="mascota__expresion" id="expresionMascota"></div>
+      </div>
+      <div class="mascota__burbuja" id="burbujaMascota">
+        <span id="burbujaTexto">¡Hola, guardián! 🔥</span>
+      </div>
+    </div>
+
+    <div class="mascota__dialogo" id="mensajeAccion">¡Bienvenido, guardián del Felénix!</div>
+  </div>
+
+  <div class="juego__stats-panel">
+    <div class="stats__necesidades">
+      <div class="stat__item">
+        <div class="stat__label"><span>❤️</span><span>Salud</span>
+          <span class="stat__val" id="valorSalud">100</span></div>
+        <progress id="barraSalud" max="100" value="100"></progress>
+        <div class="stat__alerta" id="mensajeSalud" style="display:none"></div>
+      </div>
+      <div class="stat__item">
+        <div class="stat__label"><span>⚡</span><span>Energía</span>
+          <span class="stat__val" id="valorEnergia">100</span></div>
+        <progress id="barraEnergia" max="100" value="100"></progress>
+        <div class="stat__alerta" id="mensajeEnergia" style="display:none"></div>
+      </div>
+      <div class="stat__item">
+        <div class="stat__label"><span>😄</span><span>Felicidad</span>
+          <span class="stat__val" id="valorFelicidad">100</span></div>
+        <progress id="barraFelicidad" max="100" value="100"></progress>
+        <div class="stat__alerta" id="mensajeFelicidad" style="display:none"></div>
+      </div>
+      <div class="stat__item">
+        <div class="stat__label"><span>🍖</span><span>Hambre</span>
+          <span class="stat__val" id="valorHambre">100</span></div>
+        <progress id="barraHambre" max="100" value="100"></progress>
+        <div class="stat__alerta" id="mensajeHambre" style="display:none"></div>
+      </div>
+      <div class="stat__item">
+        <div class="stat__label"><span>✨</span><span>Higiene</span>
+          <span class="stat__val" id="valorHigiene">100</span></div>
+        <progress id="barraHigiene" max="100" value="100"></progress>
+        <div class="stat__alerta" id="mensajeHigiene" style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="stats__acciones">
+      <button class="accion__btn" id="btnComer">
+        <span>🍖</span><span>Comer</span>
+      </button>
+      <button class="accion__btn" id="btnJugar">
+        <span>🎮</span><span>Jugar</span>
+      </button>
+      <button class="accion__btn" id="btnBañar">
+        <span>🛁</span><span>Bañar</span>
+      </button>
+      <button class="accion__btn" id="btnDormir">
+        <span>💤</span><span>Dormir</span>
+      </button>
+      <button class="accion__btn accion__btn--wide" id="btnMute">
+        <span>🔊</span><span>Sonido</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Overlay de muerte -->
+  <div class="muerte__overlay" id="muerteOverlay" style="display:none">
+    <div class="muerte__card">
+      <img src="imagenes/triste24.png" class="muerte__img" alt="Felénix caído"
+           onerror="this.src='imagenes/triste01.png'"/>
+      <h2>El Felénix ha caído…</h2>
+      <p>Pero del polvo puede renacer.</p>
+      <button id="btnRenacer">🔥 RENACER</button>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════
+     MINI-JUEGO RUNNER
+══════════════════════════════════════════ -->
+<section id="screenMiniJuego" class="screen" style="display:none">
+
+  <div class="runner__header">
+    <button id="btnVolverJuego" class="runner__back">← Volver</button>
+    <h2 class="runner__titulo">🔥 VUELO DEL FELÉNIX</h2>
+    <div class="runner__hi">REC: <span id="hiScoreDisplay">0</span></div>
+  </div>
+
+  <div class="runner__canvas-wrap">
+    <canvas id="gameCanvas" width="480" height="320"></canvas>
+    <div class="runner__overlay" id="juegoOverlay">
+      <div class="runner__box" id="gameOverBox">
+        <div class="go-title">🔥 VUELO DEL FELÉNIX</div>
+        <div class="go-sub">
+          Recoge 💎 (cada 20 = +1❤️) · Evita pinchos<br>
+          Salta escalones · Agáchate en túneles<br>
+          <strong style="color:#ffcc00">▲▲ Doble salto = PLANEO 🪶</strong>
+        </div>
+        <button class="go-btn" id="btnIniciarRunner">▶ INICIAR VUELO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controles táctiles: ◀▶ izquierda | ▲▼ derecha -->
+  <div class="runner__controles" id="runnerControles">
+    <div class="ctrl__row">
+      <!-- Grupo izquierdo: movimiento horizontal -->
+      <div class="ctrl__group--left">
+        <button class="ctrl__btn" id="btnLeft"  aria-label="Izquierda">◀</button>
+        <button class="ctrl__btn" id="btnRight" aria-label="Derecha">▶</button>
+      </div>
+      <!-- Grupo derecho: saltar y agachar -->
+      <div class="ctrl__group--right">
+        <button class="ctrl__btn ctrl__jump" id="btnJump" aria-label="Saltar">
+          ▲<br><span style="font-size:.42em;font-family:var(--font-s)">SALTAR</span>
+        </button>
+        <button class="ctrl__btn ctrl__down" id="btnDown" aria-label="Agachar">
+          ▼<br><span style="font-size:.42em;font-family:var(--font-s)">AGACHAR</span>
+        </button>
+      </div>
+    </div>
+    <p class="ctrl__hint">◀▶ mover &nbsp;·&nbsp; ▲ saltar &nbsp;·&nbsp; ▼ agachar &nbsp;·&nbsp; ▲▲ planeo 🪶</p>
+  </div>
+
+</section>
+
+<!-- Scripts en orden correcto de dependencias -->
+<script src="js/observers.js"></script>
+<script src="js/states.js"></script>
+<script src="js/mascota.js"></script>
+<script src="js/soundManager.js"></script>
+<script src="js/uiManager.js"></script>
+<script src="js/miniJuego.js"></script>
+<script src="js/introController.js"></script>
+<script src="js/appController.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

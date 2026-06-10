@@ -1,0 +1,39 @@
+/* ================================================================ ANIMATIONS.CSS ================================================================ */
+@keyframes bounceIn{0%{transform:scale(1)}30%{transform:scale(1.06)}60%{transform:scale(.97)}100%{transform:scale(1)}}
+.bounce{animation:bounceIn .4s cubic-bezier(.36,.07,.19,.97)}
+@keyframes msgFlash{0%{opacity:0;transform:translateY(4px)}20%{opacity:1;transform:translateY(0)}80%{opacity:1}100%{opacity:.7}}
+.msg-flash{animation:msgFlash 2s ease forwards}
+@keyframes screenFadeIn{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+.screen--active{animation:screenFadeIn .4s ease forwards}
+/* Estado: jugando */
+@keyframes juegoAnim{0%,100%{transform:rotate(-5deg) scale(1.05)}50%{transform:rotate(5deg) scale(1.08)}}
+.anim--jugando .mascota__img{animation:juegoAnim .4s ease-in-out infinite}
+/* Estado: comiendo */
+@keyframes comiendoAnim{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.04)}}
+.anim--comiendo .mascota__img{animation:comiendoAnim .5s ease-in-out infinite}
+/* Estado: bañando */
+@keyframes bañandoAnim{0%,100%{transform:rotate(-2deg);filter:drop-shadow(0 0 8px rgba(0,150,255,.6))}50%{transform:rotate(2deg);filter:drop-shadow(0 0 14px rgba(0,200,255,.8))}}
+.anim--bañando .mascota__img{animation:bañandoAnim .6s ease-in-out infinite}
+/* Estado: durmiendo */
+@keyframes durmiendoAnim{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(.97);opacity:1}}
+.anim--durmiendo .mascota__img{animation:durmiendoAnim 2s ease-in-out infinite}
+/* Estado: feliz */
+@keyframes felizAnim{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-6px) rotate(-3deg)}75%{transform:translateY(-6px) rotate(3deg)}}
+.anim--feliz .mascota__img{animation:felizAnim .6s ease-in-out infinite}
+/* Estado: triste */
+@keyframes tristeAnim{0%,100%{transform:translateY(0) rotate(-1deg);filter:saturate(.5) brightness(.8)}50%{transform:translateY(3px) rotate(1deg)}}
+.anim--triste .mascota__img{animation:tristeAnim 1.5s ease-in-out infinite}
+/* Estado: cansado */
+@keyframes cansadoAnim{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(.97) rotate(-1deg);filter:brightness(.8)}}
+.anim--cansado .mascota__img{animation:cansadoAnim 2s ease-in-out infinite}
+/* Estado: muerto */
+.anim--muerto .mascota__img{filter:saturate(0) brightness(.4)!important;animation:none!important}
+/* Partículas */
+@keyframes partSubir{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),--40px) scale(0);opacity:0}}
+.particula-accion{position:absolute;pointer-events:none;font-size:1.2rem;animation:partSubir 1s ease-out forwards;z-index:10}
+/* Idle: flota suavemente */
+@keyframes idleFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.02)}}
+.anim--idle .mascota__img,.anim--caminando .mascota__img{animation:idleFloat 2.5s ease-in-out infinite}
+/* Barra baja */
+@keyframes barraLow{0%,100%{box-shadow:none}50%{box-shadow:0 0 8px rgba(255,50,0,.8)}}
+.barra--low progress{animation:barraLow 1s ease-in-out infinite}

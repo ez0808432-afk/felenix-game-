@@ -1,0 +1,77 @@
+/* MENU.CSS — fondo negro puro, efecto de llamas solo decorativo */
+#screenMenu {
+  background: #000;
+  flex-direction: column; overflow: hidden;
+}
+/* Efecto de llamas decorativo (no cambia el fondo negro) */
+.menu__bg-flames {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 105%, rgba(255,80,0,.22) 0%, transparent 55%),
+    radial-gradient(ellipse at 20% 95%,  rgba(200,40,0,.12)  0%, transparent 35%),
+    radial-gradient(ellipse at 80% 95%,  rgba(255,120,0,.12) 0%, transparent 35%);
+  animation: flicker 3s ease-in-out infinite alternate;
+}
+.menu__stars { position: absolute; inset: 0; pointer-events: none; }
+.star {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,.7);
+  animation: twinkle var(--dur,2s) ease-in-out infinite;
+}
+@keyframes flicker  { from{opacity:.7} to{opacity:1} }
+@keyframes twinkle  { 0%,100%{opacity:.3} 50%{opacity:1} }
+@keyframes flotar   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes auraPulse{ 0%,100%{transform:scale(1);opacity:.7} 50%{transform:scale(1.15);opacity:1} }
+
+.menu__container {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 24px;
+  padding: 20px 16px; width: 100%; max-width: 460px;
+}
+.menu__logo    { text-align: center; }
+.logo__fire    { font-size: 2.3rem; display: block; filter: drop-shadow(0 0 12px rgba(255,100,0,.9)); animation: flotar 3s ease-in-out infinite; }
+.logo__title   {
+  font-family: var(--font-d);
+  font-size: clamp(2rem,8vw,4.2rem); font-weight: 900;
+  background: linear-gradient(180deg,var(--fire3) 0%,var(--fire1) 50%,var(--brasa) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  filter: drop-shadow(0 0 8px rgba(255,100,0,.6));
+  letter-spacing: .1em; line-height: 1; margin: 6px 0 3px;
+}
+.logo__subtitle { font-family: var(--font-b); font-size: .82rem; letter-spacing: .4em; text-transform: uppercase; color: var(--gold); opacity: .8; }
+
+/* Showcase: idle_f00 — ÚNICA aparición aquí */
+.menu__showcase {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.showcase__aura {
+  position: absolute; width: 140px; height: 140px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,100,0,.3) 0%, transparent 70%);
+  animation: auraPulse 2.5s ease-in-out infinite; top: -12px;
+}
+.showcase__img {
+  width: 112px; height: 112px; object-fit: contain;
+  position: relative; z-index: 1;
+  filter: drop-shadow(0 0 20px rgba(255,100,0,.85));
+  animation: flotar 3s ease-in-out infinite;
+  min-width: 90px; min-height: 90px;
+  background: transparent;
+}
+.showcase__name   { font-family: var(--font-d); font-size: 1.2rem; color: var(--gold); text-shadow: var(--shadow-gold); }
+.showcase__estado { font-family: var(--font-b); font-size: .78rem; letter-spacing: .15em; color: var(--textdim); font-style: italic; }
+
+.menu__nav {
+  display: flex; flex-direction: column; gap: 11px; width: 100%; max-width: 310px;
+}
+.menu__btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 14px 20px; border-radius: var(--br);
+  font-family: var(--font-d); font-size: .8rem; font-weight: 700;
+  letter-spacing: .07em; transition: all var(--t-norm); min-height: 52px;
+}
+.menu__btn--primary   { background: linear-gradient(135deg,#cc3300,#ff6600,#ff9900); color: #fff; box-shadow: 0 4px 20px rgba(255,80,0,.5); border: 1px solid rgba(255,150,0,.4); }
+.menu__btn--primary:hover  { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,80,0,.7); }
+.menu__btn--secondary { background: rgba(255,255,255,.05); color: var(--gold); border: 1px solid rgba(240,192,96,.25); }
+.menu__btn--secondary:hover { background: rgba(240,192,96,.1); border-color: rgba(240,192,96,.5); transform: translateY(-2px); }
