@@ -8,6 +8,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const snd = () => SoundManager.getInstance();
 
+  /* ── DESBLOQUEO GLOBAL DE AUDIO ──────────────────────────────────
+     Chrome/Safari suspenden el AudioContext hasta el primer gesto.
+     Este listener se registra una sola vez en toda la página y
+     llama desbloquearAudio() para hacer ctx.resume() inmediatamente
+     en el primer toque/click/tecla, sin importar en qué pantalla
+     esté el usuario. Después se elimina solo.
+  ─────────────────────────────────────────────────────────────────── */
+  const _globalUnlock = () => {
+    snd().desbloquearAudio();
+    document.removeEventListener('touchstart', _globalUnlock, true);
+    document.removeEventListener('mousedown',  _globalUnlock, true);
+    document.removeEventListener('keydown',    _globalUnlock, true);
+  };
+  document.addEventListener('touchstart', _globalUnlock, { capture: true, passive: true, once: true });
+  document.addEventListener('mousedown',  _globalUnlock, { capture: true, once: true });
+  document.addEventListener('keydown',    _globalUnlock, { capture: true, once: true });
+
   /* ── Pantalla de nombre ── */
   document.getElementById('btnConfirmarNombre')?.addEventListener('click', () => {
     snd().reproducirClick();

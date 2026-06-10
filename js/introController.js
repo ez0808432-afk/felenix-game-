@@ -1,25 +1,16 @@
 'use strict';
 /* ================================================================
    introController.js — Singleton
-   v5.4:
-   AUDIO INTRO en web (Vercel):
-   - El AudioContext está suspendido hasta el primer gesto.
-   - Al entrar a la intro se llama reproducirIntroAsync() de
-     inmediato: si el ctx está suspendido, IntroAudio marca
-     _pendPlay=true y espera a unlock().
-   - Se registran touchstart + click + keydown UNA sola vez
-     en document. El primero que llegue llama desbloquearAudio()
-     que hace ctx.resume() y luego reproduce automáticamente.
-   - En desktop (sin bloqueo de autoplay) suena de inmediato.
-   - En mobile (iOS/Android) suena al primer toque.
+   v5.5:
+   El desbloqueo del AudioContext lo hace main.js globalmente en el
+   primer gesto. Aquí solo se llama reproducirIntroAsync() y el
+   sistema de IntroAudio reproduce en cuanto el contexto esté listo.
 ================================================================ */
 class IntroController {
   constructor() {
     this._skip          = false;
     this._partInterval  = null;
     this._flamaInterval = null;
-    this._audioIniciado = false;
-    this._unlockBound   = null; // referencia al listener de desbloqueo
   }
 
   static getInstance() {
@@ -29,49 +20,27 @@ class IntroController {
 
   iniciar() {
     UIManager.getInstance().mostrarPantalla('screenIntro');
-    this._skip          = false;
-    this._audioIniciado = false;
+    this._skip = false;
 
-    /* Quitar listener de desbloqueo previo si quedó colgado */
-    this._quitarUnlockListener();
-
-    /* ── Video (muted — siempre permitido) ── */
+    /* ── Video (muted — siempre permitido sin gesto) ── */
     const video = document.getElementById('introVideo');
     if (video) {
       video.loop        = false;
       video.muted       = true;
       video.currentTime = 0;
-      const vp = video.play();
-      if (vp) {
-        vp.catch(() => {
-          document.addEventListener('pointerdown',
-            () => video.play().catch(() => {}), { once: true });
-        });
-      }
+      video.play().catch(() => {
+        document.addEventListener('pointerdown',
+          () => video.play().catch(() => {}), { once: true });
+      });
     }
 
     this._generarParticulas();
 
-    /* ── AUDIO INTRO ──
-       1. Llamar play() de inmediato — en desktop suena ya.
-          En mobile el AudioContext queda en estado "pendiente".
-       2. Registrar listener de desbloqueo para el primer gesto. */
-    SoundManager.getInstance().reproducirIntroAsync().then(ok => {
-      if (ok) this._audioIniciado = true;
-    });
-
-    /* Listener de desbloqueo: primer gesto -> ctx.resume() -> suena */
-    this._unlockBound = () => {
-      if (this._skip) return;
-      SoundManager.getInstance().desbloquearAudio().then(() => {
-        this._audioIniciado = true;
-      });
-      this._quitarUnlockListener();
-    };
-    /* passive:true permite que touchstart no bloquee el scroll */
-    document.addEventListener('touchstart', this._unlockBound, { passive: true });
-    document.addEventListener('click',      this._unlockBound);
-    document.addEventListener('keydown',    this._unlockBound);
+    /* ── Audio: reproducirIntroAsync marca _pendPlay=true si el
+       AudioContext sigue suspendido. En cuanto main.js haga
+       desbloquearAudio() en el primer gesto, IntroAudio reproducirá
+       automáticamente. En desktop (ctx ya running) suena de inmediato. ── */
+    SoundManager.getInstance().reproducirIntroAsync();
 
     /* Botones de skip */
     document.getElementById('btnSkipIntro')
@@ -82,19 +51,10 @@ class IntroController {
     this._secuencia();
   }
 
-  _quitarUnlockListener() {
-    if (!this._unlockBound) return;
-    document.removeEventListener('touchstart', this._unlockBound);
-    document.removeEventListener('click',      this._unlockBound);
-    document.removeEventListener('keydown',    this._unlockBound);
-    this._unlockBound = null;
-  }
-
   _saltar() {
     if (this._skip) return;
     this._skip = true;
     this._limpiar();
-    this._quitarUnlockListener();
     SoundManager.getInstance().detenerIntro();
     const video = document.getElementById('introVideo');
     if (video) video.pause();
