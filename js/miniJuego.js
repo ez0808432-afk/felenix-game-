@@ -840,57 +840,64 @@ class JuegoFenix {
   _drawHUD(ctx, cv) {
     const W = cv.width;
 
-    /* ── Fuentes escaladas: reducidas para caber en canvas estrecho ── */
-    const fs   = Math.max(7, Math.round(W * 0.024));   // texto (score, diamantes)
-    const fsHe = Math.max(9, Math.round(W * 0.034));   // corazones (más pequeños)
+    /* Fuentes escaladas al ancho del canvas */
+    const fs   = Math.max(7, Math.round(W * 0.024));  // score / diamantes
+    const fsHe = Math.max(8, Math.round(W * 0.030));  // corazones
 
-    /* Altura de la barra HUD adaptada */
-    const hudH = Math.round(W * 0.092);
+    /* Franja HUD */
+    const hudH = Math.round(W * 0.088);
     ctx.fillStyle = 'rgba(0,0,0,.62)';
     ctx.fillRect(0, 0, W, hudH);
+    const cy = Math.round(hudH * 0.70); // baseline texto
 
-    const cy = Math.round(hudH * 0.68); // baseline vertical centrada
-
-    /* ── PUNTAJE (izquierda) ── */
+    /* ── SCORE (izquierda) ── */
     ctx.fillStyle = '#ffcc00';
     ctx.font = `bold ${fs}px "Press Start 2P",monospace`;
     ctx.textAlign = 'left';
     ctx.fillText(`${this._score}`, 5, cy);
 
-    /* ── DIAMANTES: icono + número ── */
+    /* ── DIAMANTES (junto al score) ── */
     ctx.fillStyle = '#80d8ff';
     const scoreW = ctx.measureText(`${this._score}`).width;
-    const diam_x = 7 + scoreW + Math.round(W * 0.03);
-    ctx.fillText(`\u{1F48E}${this._diamonds}`, diam_x, cy);
+    ctx.fillText(`\u{1F48E}${this._diamonds}`, 8 + scoreW + Math.round(W * 0.025), cy);
 
-    /* ── BARRA DE PROGRESO (centro) ── */
-    const barW = Math.round(W * 0.26);
-    const barH = Math.max(4, Math.round(hudH * 0.22));
-    const bx   = Math.round(W / 2 - barW / 2);
-    const by   = Math.round(hudH / 2 - barH / 2);
+    /* ── CORAZONES (centro-izquierda, justo a la izquierda de la barra) ──
+       Se dibujan como texto plano "❤❤❤" / "❤❤♥" etc. con fill manual
+       para control exacto de ancho, sin depender de emoji rendering.     */
+    const heSize  = fsHe;
+    const heGap   = Math.round(heSize * 0.18);
+    const totalHe = 3 * heSize + 2 * heGap;
+
+    /* Barra de progreso: centrada, pero desplazada a la derecha para
+       dejar espacio a los corazones a su izquierda                      */
+    const barW  = Math.round(W * 0.24);
+    const barH  = Math.max(4, Math.round(hudH * 0.20));
+    const byBar = Math.round(hudH / 2 - barH / 2);
+    /* Corazones + gap + barra se ubican centrados juntos               */
+    const bloque = totalHe + 6 + barW;
+    const bloqueX = Math.round(W / 2 - bloque / 2);
+
+    /* Dibujar corazones uno a uno */
+    ctx.font = `${heSize}px Arial, sans-serif`;
+    ctx.textAlign = 'left';
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = i < this._vidas ? '#ff3333' : '#555555';
+      ctx.fillText(i < this._vidas ? '\u2764' : '\u2665',
+        bloqueX + i * (heSize + heGap), cy);
+    }
+
+    /* Barra de progreso */
+    const bx   = bloqueX + totalHe + 6;
     const prog = Math.min(1, this._worldX / this._nivelLen);
     ctx.fillStyle = 'rgba(255,255,255,.12)';
-    ctx.fillRect(bx, by, barW, barH);
-    const pg = ctx.createLinearGradient(bx, by, bx + barW, by);
+    ctx.fillRect(bx, byBar, barW, barH);
+    const pg = ctx.createLinearGradient(bx, byBar, bx + barW, byBar);
     pg.addColorStop(0, '#ff4400'); pg.addColorStop(1, '#ffcc00');
     ctx.fillStyle = pg;
-    ctx.fillRect(bx, by, Math.round(barW * prog), barH);
+    ctx.fillRect(bx, byBar, Math.round(barW * prog), barH);
     ctx.strokeStyle = 'rgba(255,150,0,.4)';
     ctx.lineWidth = 1;
-    ctx.strokeRect(bx, by, barW, barH);
-
-    /* ── CORAZONES (derecha): dibujados individualmente para control exacto ──
-       Cada corazón tiene ancho conocido — así nunca se salen del canvas.       */
-    ctx.font = `${fsHe}px serif`;
-    const heW  = fsHe * 1.35;          // ancho estimado por emoji
-    const heGap = Math.round(heW * 0.15); // separación entre ellos
-    const totalHe = 3 * heW + 2 * heGap;
-    let hx = W - 4 - totalHe;         // x inicial del primer corazón
-    for (let i = 0; i < 3; i++) {
-      ctx.fillStyle = i < this._vidas ? '#ff3333' : '#444444';
-      ctx.textAlign = 'left';
-      ctx.fillText(i < this._vidas ? '❤' : '♥', hx + i * (heW + heGap), cy);
-    }
+    ctx.strokeRect(bx, byBar, barW, barH);
 
     /* ── PLANEO ── */
     if (this._planeando) {
