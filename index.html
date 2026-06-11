@@ -33,27 +33,37 @@
      INTRO — video una sola vez, queda congelado
 ══════════════════════════════════════════ -->
 <section id="screenIntro" class="screen" style="display:none">
+
+  <!-- ── PUERTA: toca para empezar (garantiza gesto de usuario) ── -->
+  <div id="introPuerta" class="intro__puerta">
+    <div class="intro__puerta-contenido">
+      <div class="intro__puerta-fuego">🔥</div>
+      <h2 class="intro__puerta-titulo">FELÉNIX</h2>
+      <p class="intro__puerta-sub">LA MASCOTA DE TUS SUEÑOS</p>
+      <button id="btnEmpezar" class="intro__puerta-btn">▶ &nbsp;CREAR</button>
+    </div>
+  </div>
+
+  <!-- ── Contenido de la intro (oculto hasta el toque) ── -->
   <video id="introVideo" class="intro__video"
          src="imagenes/intro_video.mp4"
-         autoplay muted playsinline
-         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.78;z-index:0">
+         muted playsinline
+         style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.78;z-index:0;display:none">
   </video>
-  <div class="intro__overlay"></div>
-  <div class="intro__particles" id="introParticles"></div>
+  <div class="intro__overlay" style="display:none" id="introOverlay"></div>
+  <div class="intro__particles" id="introParticles" style="display:none"></div>
 
-  <!-- Solo la flama — sin huevo ni grieta -->
-  <div class="intro__huevo-wrap" id="huevoWrap">
+  <div class="intro__huevo-wrap" id="huevoWrap" style="display:none">
     <div class="intro__explosion" id="introExplosion">🔥</div>
   </div>
 
-  <!-- Solo textos de narrativa — sin textos de animación del huevo -->
-  <div class="intro__textos">
+  <div class="intro__textos" id="introTextos" style="display:none">
     <p  class="intro__pretitulo" id="intro-pretitulo"></p>
     <h1 class="intro__titulo"    id="intro-titulo"></h1>
     <p  class="intro__subtitulo" id="intro-subtitulo"></p>
     <p  class="intro__cta"       id="intro-cta"></p>
   </div>
-  <button class="intro__skip" id="btnSkipIntro">[ Toca para saltar ]</button>
+  <button class="intro__skip" id="btnSkipIntro" style="display:none">[ Toca para saltar ]</button>
 </section>
 
 <!-- ══════════════════════════════════════════

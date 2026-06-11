@@ -23,3 +23,53 @@
 .explosion-anim{opacity:1!important;transform:scale(1.5)!important}
 @keyframes huevoShake{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
 @keyframes blink{0%,100%{opacity:.35}50%{opacity:1}}
+
+/* ── Puerta "toca para empezar" ── */
+.intro__puerta {
+  position: absolute; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #1a0500 0%, #000 100%);
+}
+.intro__puerta-contenido {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 14px;
+  text-align: center; padding: 30px 24px;
+}
+.intro__puerta-fuego {
+  font-size: clamp(3.5rem, 16vw, 6rem);
+  animation: puertoFuego 1.4s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 24px rgba(255,120,0,.9));
+}
+@keyframes puertoFuego {
+  from { transform: scale(1)   rotate(-4deg); }
+  to   { transform: scale(1.1) rotate( 4deg); }
+}
+.intro__puerta-titulo {
+  font-family: var(--font-d);
+  font-size: clamp(1.8rem, 8vw, 3.5rem);
+  color: #ffcc00;
+  text-shadow: 0 0 24px rgba(255,180,0,.8), 0 0 60px rgba(255,80,0,.4);
+  margin: 0; letter-spacing: .08em;
+}
+.intro__puerta-sub {
+  font-family: var(--font-b);
+  font-size: clamp(.55rem, 2.5vw, .85rem);
+  color: #cc8844; letter-spacing: .3em;
+  text-transform: uppercase; margin: 0;
+}
+.intro__puerta-btn {
+  margin-top: 18px;
+  background: linear-gradient(135deg, #cc3300, #ff6600);
+  border: none; border-radius: 14px;
+  color: #fff; font-family: var(--font-b);
+  font-size: clamp(.6rem, 3vw, .85rem);
+  padding: 16px 36px; cursor: pointer;
+  box-shadow: 0 4px 28px rgba(255,80,0,.55);
+  animation: puertoBtn 1.8s ease-in-out infinite alternate;
+  letter-spacing: .08em;
+}
+@keyframes puertoBtn {
+  from { transform: scale(1);    box-shadow: 0 4px 20px rgba(255,80,0,.5); }
+  to   { transform: scale(1.04); box-shadow: 0 6px 36px rgba(255,80,0,.8); }
+}
+.intro__puerta-btn:active { transform: scale(.95); opacity: .85; }

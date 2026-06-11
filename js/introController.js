@@ -1,10 +1,18 @@
 'use strict';
 /* ================================================================
-   introController.js — Singleton
-   v5.5:
-   El desbloqueo del AudioContext lo hace main.js globalmente en el
-   primer gesto. Aquí solo se llama reproducirIntroAsync() y el
-   sistema de IntroAudio reproduce en cuanto el contexto esté listo.
+   introController.js — Singleton  v5.7
+   
+   Flujo:
+   1. iniciar() → muestra screenIntro con la PUERTA visible.
+      Video, audio y textos están ocultos.
+   2. El usuario toca/clica el botón "TOCA PARA EMPEZAR".
+      → Este es el gesto garantizado que desbloquea el AudioContext.
+   3. _lanzarIntro():
+      → desbloquearAudio() dentro del handler del gesto ✓
+      → reproducirIntroAsync() → suena ya sin bloqueo
+      → video.play() 
+      → muestra partículas, textos, botón saltar
+      → lanza la secuencia de typewriter
 ================================================================ */
 class IntroController {
   constructor() {
@@ -22,30 +30,50 @@ class IntroController {
     UIManager.getInstance().mostrarPantalla('screenIntro');
     this._skip = false;
 
-    /* ── Video (muted — siempre permitido sin gesto) ── */
-    const video = document.getElementById('introVideo');
-    if (video) {
-      video.loop        = false;
-      video.muted       = true;
-      video.currentTime = 0;
-      video.play().catch(() => {
-        document.addEventListener('pointerdown',
-          () => video.play().catch(() => {}), { once: true });
-      });
+    /* Asegurar que la puerta esté visible y el resto oculto */
+    const puerta = document.getElementById('introPuerta');
+    if (puerta) puerta.style.display = 'flex';
+
+    const btn = document.getElementById('btnEmpezar');
+    if (btn) {
+      /* Reemplazar el nodo para quitar listeners anteriores */
+      const nuevoBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(nuevoBtn, btn);
+      nuevoBtn.addEventListener('click', () => this._lanzarIntro(), { once: true });
     }
+  }
 
-    this._generarParticulas();
+  /* Llamado DENTRO del click del botón — gesto garantizado */
+  _lanzarIntro() {
+    /* 1. Ocultar puerta */
+    const puerta = document.getElementById('introPuerta');
+    if (puerta) puerta.style.display = 'none';
 
-    /* ── Audio: reproducirIntroAsync marca _pendPlay=true si el
-       AudioContext sigue suspendido. En cuanto main.js haga
-       desbloquearAudio() en el primer gesto, IntroAudio reproducirá
-       automáticamente. En desktop (ctx ya running) suena de inmediato. ── */
+    /* 2. DESBLOQUEAR AUDIO — dentro del handler del gesto ✓ */
+    SoundManager.getInstance().desbloquearAudio();
+
+    /* 3. Reproducir audio intro — ctx ya running, suena de inmediato */
     SoundManager.getInstance().reproducirIntroAsync();
 
-    /* Botones de skip */
+    /* 4. Mostrar y reproducir video */
+    const video = document.getElementById('introVideo');
+    if (video) {
+      video.style.display = 'block';
+      video.currentTime = 0;
+      video.play().catch(() => {});
+    }
+
+    /* 5. Mostrar overlay, partículas, textos, botón saltar */
+    const ids = ['introOverlay','introParticles','huevoWrap','introTextos','btnSkipIntro'];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = '';
+    });
+
+    /* 6. Partículas y secuencia */
+    this._generarParticulas();
+
     document.getElementById('btnSkipIntro')
-      ?.addEventListener('click', () => this._saltar(), { once: true });
-    document.getElementById('screenIntro')
       ?.addEventListener('click', () => this._saltar(), { once: true });
 
     this._secuencia();
@@ -57,7 +85,7 @@ class IntroController {
     this._limpiar();
     SoundManager.getInstance().detenerIntro();
     const video = document.getElementById('introVideo');
-    if (video) video.pause();
+    if (video) { video.pause(); video.style.display = 'none'; }
     AppController.getInstance().mostrarNombre();
   }
 
@@ -92,12 +120,8 @@ class IntroController {
       { id:'intro-subtitulo', texto:'NACE FELÉNIX — GATO, DRAGÓN Y FÉNIX' },
       { id:'intro-cta',       texto:'[ Toca para comenzar tu aventura ]' },
     ];
-
     let delay = 300;
-    for (const t of textos) {
-      t.delay = delay;
-      delay += t.texto.length * CHAR_MS + 200;
-    }
+    for (const t of textos) { t.delay = delay; delay += t.texto.length * CHAR_MS + 200; }
 
     textos.forEach(t => {
       setTimeout(() => {
@@ -109,7 +133,6 @@ class IntroController {
     });
 
     setTimeout(() => { if (!this._skip) this._animarFlama(); }, 800);
-
     await this._esperar(14000);
     if (!this._skip) this._saltar();
   }
@@ -127,8 +150,7 @@ class IntroController {
   }
 
   _animarFlama() {
-    const ex = document.getElementById('introExplosion');
-    if (!ex) return;
+    const ex = document.getElementById('introExplosion'); if (!ex) return;
     ex.style.transition = 'all .8s cubic-bezier(.17,.67,.35,1.5)';
     ex.style.opacity    = '1';
     ex.style.transform  = 'scale(1.6)';
@@ -144,9 +166,7 @@ class IntroController {
   _esperar(ms) {
     return new Promise(res => {
       const t = setTimeout(res, ms);
-      const c = setInterval(() => {
-        if (this._skip) { clearTimeout(t); clearInterval(c); res(); }
-      }, 50);
+      const c = setInterval(() => { if (this._skip) { clearTimeout(t); clearInterval(c); res(); } }, 50);
       setTimeout(() => clearInterval(c), ms + 100);
     });
   }
