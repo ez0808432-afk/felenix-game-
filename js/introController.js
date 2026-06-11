@@ -118,7 +118,7 @@ class IntroController {
       { id:'intro-pretitulo', texto:'✦  En el principio, existía el Fuego Eterno  ✦' },
       { id:'intro-titulo',    texto:'DE LAS CENIZAS' },
       { id:'intro-subtitulo', texto:'NACE FELÉNIX — GATO, DRAGÓN Y FÉNIX' },
-      { id:'intro-cta',       texto:'[ Toca para comenzar tu aventura ]' },
+      { id:'intro-cta',       texto:' 🐦‍🔥 ' },
     ];
     let delay = 300;
     for (const t of textos) { t.delay = delay; delay += t.texto.length * CHAR_MS + 200; }
